@@ -1,0 +1,1 @@
+# scrape RMP site, gather professor rating, most recent comment, name, etc.
