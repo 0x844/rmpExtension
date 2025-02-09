@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "GMU RMP Rating",
+    "name": "RMP for GMU",
     "version": "1.0",
     "description": "View RMP ratings on PatriotWeb",
     "icons": {
@@ -9,8 +9,7 @@
         "16": "icon16.png"
     },
     "action": {
-        "default_icon": "icon16.png",
-        "default_popup": "popup.html"
+        "default_icon": "icon16.png"
     },
     "host_permissions": [
         "*://patriotweb.gmu.edu/*",
@@ -21,7 +20,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classSearch/classSearch*"],
+            "matches": ["*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classSearch/classSearch*", "*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration*"],
             "js": ["jquery-3.7.1.slim.min.js", "content.js"],
             "css": ["content.css"]
         }

@@ -1,31 +1,38 @@
 (async () => {
-  const observer = new MutationObserver(async () => {
-      const professorElements = document.querySelectorAll('td[data-property="instructor"]');
+    // track already processed elements
+    const processedElements = new WeakSet();
 
-      // once user reaches page with courses listed (prevents browser from attempting to gather data from "search" page)
-      if (professorElements.length > 0) {
-          observer.disconnect(); // Stop observing once elements are found
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE){
+                    const professorElements = node.querySelectorAll
+                    ? node.querySelectorAll('td[data-property="instructor"]')
+                    : [];
 
-          professorElements.forEach(async td => {
-              let professorName = td.querySelector("a.email")?.textContent.trim();
-              if (!professorName) return;
+                    professorElements.forEach(async td => {
+                        if (processedElements.has(td)) return;
+                        processedElements.add(td);
 
-              // Strip pronouns
-              professorName = professorName.replace(/\s*\(.*?\)\s*/g, '').trim();
+                        let professorName = td.querySelector("a.email")?.textContent?.trim();
+                        if (!professorName) return;
 
-              // convert to firstName lastName format
-              let formattedName;
-              if (professorName.includes(",")) {
-                  const [lastName, firstName] = professorName.split(',').map(name => name.trim());
-                  formattedName = `${firstName} ${lastName}`;
-              } else {
-                  formattedName = professorName;
-              }
+                        professorName = professorName.replace(/\s*\(.*?\)\s*/g, '').trim();
 
-              // Pass formatted name and the instructor's <td> element
-              await fetchProfessorData(formattedName, td);
-          });
-      }
+
+                        let formattedName;
+                        if (professorName.includes(",")) {
+                            const [lastName, firstName] = professorName.split(',').map(name => name.trim());
+                            formattedName = `${firstName} ${lastName}`;
+                        } else {
+                            formattedName = professorName;
+                        }
+
+                        await fetchProfessorData(formattedName, td);
+                    })
+                }
+            })
+        })
   });
 
   observer.observe(document.body, {
@@ -57,6 +64,7 @@ async function fetchProfessorData(professorName, instructorElement) {
           const professor = data.find(p => p.school.name === "George Mason University");
           if (professor) {
               updateInstructorBox(instructorElement, professor);
+              setColumnWidth();
           }
       } else {
           console.log(`No data for ${professorName}`);
@@ -70,7 +78,7 @@ async function fetchProfessorData(professorName, instructorElement) {
 function updateInstructorBox(instructorElement, professor) {
   const { id, firstName, lastName, avgRating, numRatings, difficulty } = professor;
 
-  // Decode the Base64 ID
+  // Decode the ID (extracted as base-64)
   let decodedId = atob(id).replace("Teacher-", "");  // Remove "Teacher-" prefix
 
   // Clear out the current instructor name from the <td>
@@ -124,5 +132,18 @@ function updateInstructorBox(instructorElement, professor) {
 
   // Append the newly created div to the instructor <td>
   instructorElement.appendChild(rmpDiv);
+}
+
+// override original column width to display all info in box
+function setColumnWidth(){
+    const header = document.querySelector('th[data-property="instructor"]');
+
+    if (header){
+        header.style.width = "300px";
+
+    }
+    else{
+        console.warn("elem not found");
+    }
 }
 
