@@ -14,8 +14,7 @@
     },
     "host_permissions": [
         "*://patriotweb.gmu.edu/*",
-        "*://ssbstureg.gmu.edu/*",
-        "*://example.com/*"
+        "*://ssbstureg.gmu.edu/*"
     ],
     "background": {
         "service_worker": "background.js"
