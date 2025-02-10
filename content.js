@@ -89,8 +89,28 @@ async function fetchProfessorData(professorName, instructorElement) {
     // adjust instructor column width
     const instructorCol = document.querySelector('th.instructor-col');
     if (instructorCol) {
-        instructorCol.style.width = '19%';
-        instructorCol.style.minWidth = '240px';
+        // Use fixed pixel width instead of percentage
+        instructorCol.style.width = '240px !important';
+        instructorCol.style.minWidth = '240px !important';
+        
+        // Force column sizing (add this CSS once)
+        const style = document.createElement('style');
+        style.textContent = `
+            th.instructor-col {
+                width: 300px !important;
+                min-width: 300px !important;
+                max-width: 300px !important;
+                box-sizing: border-box !important;
+            }
+            
+            @media (max-width: 480px) {
+                th.instructor-col {
+                    width: 100% !important;
+                    min-width: 100% !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     // Create main container
