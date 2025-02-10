@@ -41,47 +41,49 @@
   });
 })();
 
+// calls fetchProfessorData from background script
 async function fetchProfessorData(professorName, instructorElement) {
-  try {
-      const response = await fetch('https://jv8cdj610e.execute-api.us-east-1.amazonaws.com/dev/rmpProxy', {
-          method: 'POST',
-          headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Basic dGVzdDp0ZXN0",
-          },
-          body: JSON.stringify({ professorName })
-      });
-
-      if (!response.ok) {
-          const errorData = await response.text();
-          throw new Error(`HTTP error! Status: ${response.status} - ${errorData}`);
-      }
-
-      const data = await response.json();
-      console.log(`Successful API Response: ${professorName}:`, data);
-
-      if (Array.isArray(data) && data.length > 0) {
-          const professor = data.find(p => p.school.name === "George Mason University");
-          if (professor) {
-              updateInstructorBox(instructorElement, professor);
-              setColumnWidth();
-          }
-      } else {
-          console.log(`No data for ${professorName}`);
-      }
-
-  } catch (error) {
-      console.error("Fetch Error:", error);
+    try {
+        const response = await new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage(
+              { action: 'fetchProfessorData', professorName },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  return reject(chrome.runtime.lastError);
+                }
+                resolve(response);
+              }
+            );
+        });
+  
+        if (!response.ok) {
+            throw new Error(`ERROR: Status: ${response.status}`);
+        }
+  
+        const data = response.data;
+        //console.log(`Successful API Response: ${professorName}:`, data);
+  
+        if (Array.isArray(data) && data.length > 0) {
+            const professor = data.find(p => p.school.name === "George Mason University");
+            if (professor) {
+                updateInstructorBox(instructorElement, professor);
+                setColumnWidth();
+            }
+        } else {
+            console.log(`No data for ${professorName}`);
+        }
+    } catch (error) {
+        console.error("Fetch Error:", error);
+    }
   }
-}
 
 function updateInstructorBox(instructorElement, professor) {
   const { id, firstName, lastName, avgRating, numRatings, difficulty } = professor;
 
-  // Decode the ID (extracted as base-64)
-  let decodedId = atob(id).replace("Teacher-", "");  // Remove "Teacher-" prefix
+  // Decode the ID (extracted as base-64) in format "Teacher-XXXXXXX"
+  let decodedId = atob(id).replace("Teacher-", ""); 
 
-  // Clear out the current instructor name from the <td>
+  // clear instructor entry
   instructorElement.innerHTML = ""; 
 
   // Create a new container div for the styled section
@@ -93,7 +95,6 @@ function updateInstructorBox(instructorElement, professor) {
   rmpDiv.style.border = "1px solid #ddd"; 
   rmpDiv.style.backgroundColor = "#f8f8f8";
 
-  // Create a header for the professor's name with styling
   const nameHeader = document.createElement("h3");
   nameHeader.textContent = `${lastName}, ${firstName}`;
   nameHeader.style.margin = "0";
@@ -114,9 +115,9 @@ function updateInstructorBox(instructorElement, professor) {
   ratingsDiv.style.fontSize = "12px";
   ratingsDiv.style.color = "#555";
 
-  // Create RMP profile link
+  // Add RMP info
   const rmpLink = document.createElement("a");
-  rmpLink.href = `https://www.ratemyprofessors.com/professor/${decodedId}`;  // Direct link
+  rmpLink.href = `https://www.ratemyprofessors.com/professor/${decodedId}`;
   rmpLink.target = "_blank";
   rmpLink.textContent = "View RMP Profile";
   rmpLink.style.display = "inline-block";
@@ -125,12 +126,10 @@ function updateInstructorBox(instructorElement, professor) {
   rmpLink.style.fontWeight = "bold";
   rmpLink.style.textDecoration = "none";
 
-  // Append all the new elements to the rmpDiv
   rmpDiv.appendChild(nameHeader);
   rmpDiv.appendChild(ratingsDiv);
   rmpDiv.appendChild(rmpLink);
 
-  // Append the newly created div to the instructor <td>
   instructorElement.appendChild(rmpDiv);
 }
 
