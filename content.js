@@ -17,8 +17,8 @@
                         let professorName = td.querySelector("a.email")?.textContent?.trim();
                         if (!professorName) return;
 
+                        // strip pronouns
                         professorName = professorName.replace(/\s*\(.*?\)\s*/g, '').trim();
-
 
                         let formattedName;
                         if (professorName.includes(",")) {
@@ -70,67 +70,104 @@ async function fetchProfessorData(professorName, instructorElement) {
                 setColumnWidth();
             }
         } else {
-            console.log(`No data for ${professorName}`);
+            console.log(`Prof not found ${professorName}`);
         }
     } catch (error) {
-        console.error("Fetch Error:", error);
+        console.error("Error:", error);
     }
   }
 
-function updateInstructorBox(instructorElement, professor) {
-  const { id, firstName, lastName, avgRating, numRatings, difficulty } = professor;
+  function updateInstructorBox(instructorElement, professor) {
+    const { id, firstName, lastName, avgRating, numRatings, avgDifficulty, wouldTakeAgainPercent } = professor;
 
-  // Decode the ID (extracted as base-64) in format "Teacher-XXXXXXX"
-  let decodedId = atob(id).replace("Teacher-", ""); 
+    // Decode the ID (extracted as base-64) in format "Teacher-XXXXXXX"
+    let decodedId = atob(id).replace("Teacher-", ""); 
 
-  // clear instructor entry
-  instructorElement.innerHTML = ""; 
+    // Clear instructor entry
+    instructorElement.innerHTML = ""; 
 
-  // Create a new container div for the styled section
-  const rmpDiv = document.createElement("div");
-  rmpDiv.className = "rmp-info-container";
-  rmpDiv.style.display = "flex"; 
-  rmpDiv.style.flexDirection = "column"; 
-  rmpDiv.style.padding = "8px"; 
-  rmpDiv.style.border = "1px solid #ddd"; 
-  rmpDiv.style.backgroundColor = "#f8f8f8";
+    // Create a new container div for the styled section
+    const rmpDiv = document.createElement("div");
+    rmpDiv.className = "rmp-info-container";
+    rmpDiv.style.display = "flex"; 
+    rmpDiv.style.flexDirection = "column"; 
+    rmpDiv.style.padding = "8px";
+    rmpDiv.style.border = "1px solid #ddd"; 
+    rmpDiv.style.backgroundColor = "#f8f8f8";
+    rmpDiv.style.borderRadius = "6px";
+    rmpDiv.style.width = "230px";
+    rmpDiv.style.boxShadow = "2px 2px 6px rgba(0, 0, 0, 0.1)";
+    rmpDiv.style.position = "relative"; 
 
-  const nameHeader = document.createElement("h3");
-  nameHeader.textContent = `${lastName}, ${firstName}`;
-  nameHeader.style.margin = "0";
-  nameHeader.style.fontSize = "16px";
-  nameHeader.style.fontWeight = "bold";
-  nameHeader.style.color = "#333";
+    // Name header (placed top left)
+    const nameHeader = document.createElement("h3");
+    nameHeader.textContent = `${firstName} ${lastName}`;
+    nameHeader.style.margin = "0";
+    nameHeader.style.fontSize = "14px";
+    nameHeader.style.fontWeight = "bold";
+    nameHeader.style.color = "#191919";
+    nameHeader.style.textAlign = "left";
+    nameHeader.style.paddingBottom = "4px";
 
-  // Add rating, difficulty, and number of reviews
-  const ratingsDiv = document.createElement("div");
-  ratingsDiv.style.marginTop = "5px";
-  ratingsDiv.innerHTML = `
-      <strong>RMP Rating:</strong> ⭐ ${avgRating || "N/A"} / 5
-      <br>
-      <strong>Difficulty:</strong> 🎯 ${difficulty || "N/A"} 
-      <br>
-      <strong>Reviews:</strong> ${numRatings || "N/A"}
-  `;
-  ratingsDiv.style.fontSize = "12px";
-  ratingsDiv.style.color = "#555";
+    rmpDiv.appendChild(nameHeader);
 
-  // Add RMP info
-  const rmpLink = document.createElement("a");
-  rmpLink.href = `https://www.ratemyprofessors.com/professor/${decodedId}`;
-  rmpLink.target = "_blank";
-  rmpLink.textContent = "View RMP Profile";
-  rmpLink.style.display = "inline-block";
-  rmpLink.style.marginTop = "5px";
-  rmpLink.style.color = "blue";
-  rmpLink.style.fontWeight = "bold";
-  rmpLink.style.textDecoration = "none";
+    // Rating progress bar 
+    if (typeof avgRating === "number") {
+        const progressContainer = document.createElement("div");
+        progressContainer.style.width = "100%";
+        progressContainer.style.height = "8px";
+        progressContainer.style.backgroundColor = "#ddd";
+        progressContainer.style.borderRadius = "5px";
+        progressContainer.style.overflow = "hidden";
+        progressContainer.style.marginBottom = "8px";
 
-  rmpDiv.appendChild(nameHeader);
-  rmpDiv.appendChild(ratingsDiv);
-  rmpDiv.appendChild(rmpLink);
+        const progressBar = document.createElement("div");
+        progressBar.style.height = "100%";
+        progressBar.style.width = `${(avgRating / 5) * 100}%`;
+        progressBar.style.borderRadius = "5px";
+        progressBar.style.transition = "width 0.5s ease-in-out";
 
-  instructorElement.appendChild(rmpDiv);
+        // hue for progress bar
+        const hue = (avgRating / 5) * 120;
+        progressBar.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
+
+        progressContainer.appendChild(progressBar);
+        rmpDiv.appendChild(progressContainer);
+    }
+
+    // Ratings container
+    const ratingsDiv = document.createElement("div");
+    ratingsDiv.style.display = "flex";
+    ratingsDiv.style.flexDirection = "column";
+    ratingsDiv.style.gap = "4px";
+    ratingsDiv.style.fontSize = "12px";
+    ratingsDiv.style.color = "#555";
+    
+    // set data format
+    ratingsDiv.innerHTML = `
+        <div><strong>⭐ Rating:</strong> ${avgRating || "N/A"} / 5</div>
+        <div><strong>📚 Would Take Again:</strong> ${wouldTakeAgainPercent ? Math.round(wouldTakeAgainPercent) + "%" : "N/A"}</div>
+        <div><strong>📊 Difficulty:</strong> ${avgDifficulty || "N/A"}</div>
+        <div><strong>📝 Reviews:</strong> ${numRatings || "N/A"}</div>
+    `;
+
+    rmpDiv.appendChild(ratingsDiv);
+
+    // "View Profile" link (bottom right)
+    const rmpLink = document.createElement("a");
+    rmpLink.href = `https://www.ratemyprofessors.com/professor/${decodedId}`;
+    rmpLink.target = "_blank";
+    rmpLink.textContent = "View Profile";
+    rmpLink.style.position = "absolute";
+    rmpLink.style.bottom = "8px"; 
+    rmpLink.style.right = "8px";
+    rmpLink.style.color = "#0073e6";
+    rmpLink.style.fontWeight = "bold";
+    rmpLink.style.textDecoration = "none";
+    rmpLink.style.fontSize = "12px";
+
+    rmpDiv.appendChild(rmpLink);
+    instructorElement.appendChild(rmpDiv);
 }
 
 // override original column width to display all info in box
@@ -138,8 +175,7 @@ function setColumnWidth(){
     const header = document.querySelector('th[data-property="instructor"]');
 
     if (header){
-        header.style.width = "300px";
-
+        header.style.width = "257px";
     }
     else{
         console.warn("elem not found");
