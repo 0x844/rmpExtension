@@ -159,7 +159,13 @@ async function fetchProfessorData(professorName, instructorElement) {
 
     // Name section (right of badge)
     const nameHeader = document.createElement("div");
-    nameHeader.textContent = `${firstName} ${lastName}`;
+    if (avgRating <= 2.0){
+        nameHeader.textContent = `${firstName} ${lastName} ⚠️`;
+    }
+    else{
+        nameHeader.textContent = `${firstName} ${lastName}`;
+    }
+    
     Object.assign(nameHeader.style, {
         fontSize: "16px",
         fontWeight: "600",
