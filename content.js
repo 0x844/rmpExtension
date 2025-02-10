@@ -80,105 +80,172 @@ async function fetchProfessorData(professorName, instructorElement) {
   function updateInstructorBox(instructorElement, professor) {
     const { id, firstName, lastName, avgRating, numRatings, avgDifficulty, wouldTakeAgainPercent } = professor;
 
-    // Decode the ID (extracted as base-64) in format "Teacher-XXXXXXX"
+    // Decode the ID
     let decodedId = atob(id).replace("Teacher-", ""); 
 
     // Clear instructor entry
     instructorElement.innerHTML = ""; 
 
-    // Create a new container div for the styled section
-    const rmpDiv = document.createElement("div");
-    rmpDiv.className = "rmp-info-container";
-    rmpDiv.style.display = "flex"; 
-    rmpDiv.style.flexDirection = "column"; 
-    rmpDiv.style.padding = "8px";
-    rmpDiv.style.border = "1px solid #ddd"; 
-    rmpDiv.style.backgroundColor = "#f8f8f8";
-    rmpDiv.style.borderRadius = "6px";
-    rmpDiv.style.width = "230px";
-    rmpDiv.style.boxShadow = "2px 2px 6px rgba(0, 0, 0, 0.1)";
-    rmpDiv.style.position = "relative"; 
-
-    // Name header (placed top left)
-    const nameHeader = document.createElement("h3");
-    nameHeader.textContent = `${firstName} ${lastName}`;
-    nameHeader.style.margin = "0";
-    nameHeader.style.fontSize = "14px";
-    nameHeader.style.fontWeight = "bold";
-    nameHeader.style.color = "#191919";
-    nameHeader.style.textAlign = "left";
-    nameHeader.style.paddingBottom = "4px";
-
-    rmpDiv.appendChild(nameHeader);
-
-    // Rating progress bar 
-    if (typeof avgRating === "number") {
-        const progressContainer = document.createElement("div");
-        progressContainer.style.width = "100%";
-        progressContainer.style.height = "8px";
-        progressContainer.style.backgroundColor = "#ddd";
-        progressContainer.style.borderRadius = "5px";
-        progressContainer.style.overflow = "hidden";
-        progressContainer.style.marginBottom = "8px";
-
-        const progressBar = document.createElement("div");
-        progressBar.style.height = "100%";
-        progressBar.style.width = `${(avgRating / 5) * 100}%`;
-        progressBar.style.borderRadius = "5px";
-        progressBar.style.transition = "width 0.5s ease-in-out";
-
-        // hue for progress bar
-        const hue = (avgRating / 5) * 120;
-        progressBar.style.backgroundColor = `hsl(${hue}, 100%, 50%)`;
-
-        progressContainer.appendChild(progressBar);
-        rmpDiv.appendChild(progressContainer);
+    // adjust instructor column width
+    const instructorCol = document.querySelector('th.instructor-col');
+    if (instructorCol) {
+        instructorCol.style.width = '19%';
+        instructorCol.style.minWidth = '240px';
     }
 
-    // Ratings container
-    const ratingsDiv = document.createElement("div");
-    ratingsDiv.style.display = "flex";
-    ratingsDiv.style.flexDirection = "column";
-    ratingsDiv.style.gap = "4px";
-    ratingsDiv.style.fontSize = "12px";
-    ratingsDiv.style.color = "#555";
-    
-    // set data format
-    ratingsDiv.innerHTML = `
-        <div><strong>⭐ Rating:</strong> ${avgRating || "N/A"} / 5</div>
-        <div><strong>📚 Would Take Again:</strong> ${wouldTakeAgainPercent ? Math.round(wouldTakeAgainPercent) + "%" : "N/A"}</div>
-        <div><strong>📊 Difficulty:</strong> ${avgDifficulty || "N/A"}</div>
-        <div><strong>📝 Reviews:</strong> ${numRatings || "N/A"}</div>
-    `;
+    // Create main container
+    const rmpDiv = document.createElement("div");
+    Object.assign(rmpDiv.style, {
+        position: "relative",
+        padding: "16px",
+        borderRadius: "8px",
+        backgroundColor: "#ffffff",
+        border: "1px solid #e0e0e0",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
+        width: "240px",
+        fontFamily: "'Segoe UI', system-ui, sans-serif",
+        color: "#333333"
+    });
 
-    rmpDiv.appendChild(ratingsDiv);
+    // Header container
+    const headerContainer = document.createElement("div");
+    Object.assign(headerContainer.style, {
+        display: "flex",
+        gap: "8px",
+        marginBottom: "12px"
+    });
 
-    // "View Profile" link (bottom right)
+    // Rating badge (left side)
+    if (typeof avgRating === "number") {
+        const ratingBadge = document.createElement("div");
+        const hue = (avgRating / 5) * 120; // Green (120) to red (0)
+        Object.assign(ratingBadge.style, {
+            width: "40px",
+            height: "40px",
+            borderRadius: "6px",
+            backgroundColor: `hsl(${hue}, 70%, 40%)`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: "16px",
+            fontWeight: "600",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            flexShrink: "0"
+        });
+        ratingBadge.textContent = avgRating.toFixed(1);
+        headerContainer.appendChild(ratingBadge);
+    }
+
+    // Name section (right of badge)
+    const nameHeader = document.createElement("div");
+    nameHeader.textContent = `${firstName} ${lastName}`;
+    Object.assign(nameHeader.style, {
+        fontSize: "16px",
+        fontWeight: "600",
+        color: "#1a1a1a",
+        alignSelf: "center"
+    });
+    headerContainer.appendChild(nameHeader);
+    rmpDiv.appendChild(headerContainer);
+
+    // Stats grid
+    const statsGrid = document.createElement("div");
+    Object.assign(statsGrid.style, {
+        display: "grid",
+        gridTemplateColumns: "repeat(2, 1fr)",
+        gap: "12px 16px",
+        marginBottom: "8px"
+    });
+
+    const createStat = (label, value, icon, isDifficulty = false) => {
+        const container = document.createElement("div");
+        const valueText = typeof value === "number" ? 
+            (isDifficulty ? value.toFixed(1) : Math.round(value)) : "N/A";
+        
+        container.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 14px;">${icon}</span>
+                <div style="flex: 1;">
+                    <div style="font-size: 11px; color: #666; margin-bottom: 2px;">${label}</div>
+                    <div style="font-size: 14px; font-weight: 500;">${valueText}${label === 'TAKE AGAIN' ? '%' : ''}</div>
+                </div>
+            </div>
+        `;
+
+        // Add difficulty progress bar
+        if (isDifficulty && typeof value === "number") {
+            const difficultyHue = ((5 - value) / 5) * 120;
+            const progressContainer = document.createElement("div");
+            Object.assign(progressContainer.style, {
+                height: "4px",
+                backgroundColor: "#eee",
+                borderRadius: "2px",
+                overflow: "hidden",
+                marginTop: "4px"
+            });
+
+            const progressBar = document.createElement("div");
+            Object.assign(progressBar.style, {
+                width: `${(value / 5) * 100}%`,
+                height: "100%",
+                backgroundColor: `hsl(${difficultyHue}, 70%, 40%)`,
+                transition: "width 0.3s ease"
+            });
+
+            progressContainer.appendChild(progressBar);
+            container.appendChild(progressContainer);
+        }
+
+        return container;
+    };
+
+    statsGrid.appendChild(createStat("DIFFICULTY", avgDifficulty, "📊", true));
+    statsGrid.appendChild(createStat("TAKE AGAIN", wouldTakeAgainPercent, "🔄"));
+    //statsGrid.appendChild(createStat("REVIEWS", numRatings, "📝"));
+
+    // View Profile button
     const rmpLink = document.createElement("a");
     rmpLink.href = `https://www.ratemyprofessors.com/professor/${decodedId}`;
     rmpLink.target = "_blank";
-    rmpLink.textContent = "View Profile";
-    rmpLink.style.position = "absolute";
-    rmpLink.style.bottom = "8px"; 
-    rmpLink.style.right = "8px";
-    rmpLink.style.color = "#0073e6";
-    rmpLink.style.fontWeight = "bold";
-    rmpLink.style.textDecoration = "none";
-    rmpLink.style.fontSize = "12px";
+    rmpLink.textContent = "View Profile →";
+    Object.assign(rmpLink.style, {
+        display: "flex",
+        alignItems: "center",
+        padding: "6px 10px",
+        backgroundColor: "#f5f5f5",
+        borderRadius: "4px",
+        color: "#333",
+        textDecoration: "none",
+        fontSize: "12px",
+        fontWeight: "500",
+        transition: "background-color 0.2s ease",
+        gridColumn: "span 2"
+    });
 
-    rmpDiv.appendChild(rmpLink);
+    // Create container for reviews and profile link
+    const bottomRow = document.createElement("div");
+    Object.assign(bottomRow.style, {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: "8px"
+    });
+    
+    // Add reviews and link to bottom row
+    bottomRow.appendChild(createStat("REVIEWS", numRatings, "📝"));
+    bottomRow.appendChild(rmpLink);
+
+    // Hover effect
+    rmpLink.addEventListener('mouseenter', () => {
+        rmpLink.style.backgroundColor = "#eee";
+    });
+    rmpLink.addEventListener('mouseleave', () => {
+        rmpLink.style.backgroundColor = "#f5f5f5";
+    });
+
+    rmpDiv.appendChild(statsGrid);
+    rmpDiv.appendChild(bottomRow);
     instructorElement.appendChild(rmpDiv);
-}
-
-// override original column width to display all info in box
-function setColumnWidth(){
-    const header = document.querySelector('th[data-property="instructor"]');
-
-    if (header){
-        header.style.width = "257px";
-    }
-    else{
-        console.warn("elem not found");
-    }
 }
 
