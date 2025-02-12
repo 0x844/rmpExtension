@@ -20,11 +20,8 @@
     },
     "content_scripts": [
         {
-            "matches": ["*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classSearch/classSearch*", "*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration*"],
+            "matches": ["*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classSearch/classSearch*", "*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration*", "*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/plan/plan*", "*://ssbstureg.gmu.edu/StudentRegistrationSsb/ssb/courseSearch/courseSearch*"],
             "js": ["jquery-3.7.1.slim.min.js", "content.js"]
         }
-    ],
-    "permissions": [
-        "scripting"
     ]
 }
