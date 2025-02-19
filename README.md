@@ -2,6 +2,8 @@
 
 View Rate My Professor ratings directly on PatriotWeb!
 
+![unnamed](https://github.com/user-attachments/assets/5aa7b260-e723-4c94-8791-7247400968ca)
+
 ## 📖 Overview
 RMP for GMU is a Chrome extension that seamlessly integrates Rate My Professor (RMP) ratings into PatriotWeb, helping George Mason University students make informed course selections. With this extension, users can instantly view professor ratings, difficulty scores, and student feedback—without ever leaving PatriotWeb.
 
