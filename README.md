@@ -22,4 +22,4 @@ AWS Lambda – Processes professor rating requests
 
 AWS API Gateway – Securely fetches Rate My Professor data
 
-Chrome Extensions API – Injects data dynamically into PatriotWeb
+Content Script – Injects data dynamically into PatriotWeb
