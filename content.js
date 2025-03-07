@@ -23,6 +23,10 @@
                         let formattedName;
                         if (professorName.includes(",")) {
                             const [lastName, firstName] = professorName.split(',').map(name => name.trim());
+
+                            // remove middle initial, and period if present
+                            firstName = firstName.replace(/\s+\w\.?$/, "").trim();
+
                             formattedName = `${firstName} ${lastName}`;
                         } else {
                             formattedName = professorName;
