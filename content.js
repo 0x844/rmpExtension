@@ -25,7 +25,12 @@
                             const [lastName, firstName] = professorName.split(',').map(name => name.trim());
 
                             // remove middle initial, and period if present
-                            firstName = firstName.replace(/\s+\w\.?$/, "").trim();
+                            let tokens = firstName.split(/\s+/);
+                            
+                            if (tokens[0].match(/^[A-Za-z]\.?$/)) {
+                                tokens.shift();
+                            }
+                            firstName = tokens.join(" ").trim();
 
                             formattedName = `${firstName} ${lastName}`;
                         } else {
